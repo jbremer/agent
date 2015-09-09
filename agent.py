@@ -122,12 +122,21 @@ def do_execute():
     if "command" not in request.form:
         return json_error(400, "No command has been provided")
 
+    # Execute the command asynchronously?
+    async = "async" in request.form
+    stdout = stderr = None
+
     try:
-        output = subprocess.check_output(request.form["command"], shell=True)
+        p = subprocess.Popen(request.form["command"], shell=True,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        if not async:
+            stdout, stderr = p.communicate()
     except:
         return json_exception("Error executing command")
 
-    return json_success("Successfully executed command", output=output)
+    return json_success("Successfully executed command",
+                        stdout=stdout, stderr=stderr)
 
 @app.route("/kill")
 def do_kill():
