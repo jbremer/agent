@@ -42,8 +42,12 @@ def get_system():
     return json_success("System", system=platform.system())
 
 @app.route("/environ")
-def get_error():
-    return json_success("Environment variables", environ=os.environ)
+def get_environ():
+    return json_success("Environment variables", environ=dict(os.environ))
+
+@app.route("/path")
+def get_path():
+    return json_success("Agent path", filepath=os.path.abspath(__file__))
 
 @app.route("/mkdir", methods=["POST"])
 def do_mkdir():
@@ -59,7 +63,7 @@ def do_mkdir():
 
     return json_success("Successfully created directory")
 
-@app.route("/mktemp", methods=["POST"])
+@app.route("/mktemp", methods=["GET", "POST"])
 def do_mktemp():
     suffix = request.form.get("suffix", "")
     prefix = request.form.get("prefix", "tmp")
@@ -71,7 +75,7 @@ def do_mktemp():
     return json_success("Successfully created temporary file",
                         filepath=filepath)
 
-@app.route("/mkdtemp", methods=["POST"])
+@app.route("/mkdtemp", methods=["GET", "POST"])
 def do_mkdtemp():
     suffix = request.form.get("suffix", "")
     prefix = request.form.get("prefix", "tmp")
@@ -90,10 +94,12 @@ def do_store():
         return json_error(400, "No file has been provided")
 
     try:
-        with open(request.form["filepath"], "rb") as f:
+        with open(request.form["filepath"], "wb") as f:
             f.write(request.files["file"].read())
     except:
         return json_exception("Error storing file")
+
+    return json_success("Successfully stored file")
 
 @app.route("/extract", methods=["POST"])
 def do_extract():
