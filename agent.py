@@ -6,6 +6,7 @@
 import argparse
 import os
 import platform
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -18,6 +19,7 @@ except ImportError:
     sys.exit("ERROR: Flask library is missing (`pip install flask`)")
 
 app = Flask("agent")
+state = {}
 
 def json_error(error_code, message):
     r = jsonify(message=message, error_code=error_code)
@@ -36,6 +38,18 @@ def json_success(message, **kwargs):
 @app.route("/")
 def get_index():
     return json_success("Cuckoo Agent!")
+
+@app.route("/status")
+def get_status():
+    return json_success("Analysis status", status=state.get("status"))
+
+@app.route("/status", methods=["POST"])
+def put_status():
+    if "status" not in request.form:
+        return json_error("No status has been provided")
+
+    state["status"] = request.form["status"]
+    return json_success("Analysis status updated")
 
 @app.route("/system")
 def get_system():
@@ -117,6 +131,23 @@ def do_extract():
 
     return json_success("Successfully extracted zip file")
 
+@app.route("/remove", methods=["POST"])
+def do_remove():
+    if "path" not in request.form:
+        return json_error(400, "No path has been provided")
+
+    try:
+        if os.path.isdir(request.form["path"]):
+            shutil.rmtree(request.form["path"])
+            message = "Successfully deleted directory"
+        elif os.path.isfile(request.form["path"]):
+            os.remove(request.form["path"])
+            message = "Successfully deleted file"
+    except:
+        return json_exception("Error removing file or directory")
+
+    return json_success(message)
+
 @app.route("/execute", methods=["POST"])
 def do_execute():
     if "command" not in request.form:
@@ -124,10 +155,12 @@ def do_execute():
 
     # Execute the command asynchronously?
     async = "async" in request.form
+
+    cwd = request.form.get("cwd")
     stdout = stderr = None
 
     try:
-        p = subprocess.Popen(request.form["command"], shell=True,
+        p = subprocess.Popen(request.form["command"], shell=True, cwd=cwd,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
         if not async:
