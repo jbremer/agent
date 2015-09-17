@@ -41,7 +41,9 @@ def get_index():
 
 @app.route("/status")
 def get_status():
-    return json_success("Analysis status", status=state.get("status"))
+    return json_success("Analysis status",
+                        status=state.get("status"),
+                        description=state.get("description"))
 
 @app.route("/status", methods=["POST"])
 def put_status():
@@ -49,6 +51,7 @@ def put_status():
         return json_error("No status has been provided")
 
     state["status"] = request.form["status"]
+    state["description"] = request.form.get("description")
     return json_success("Analysis status updated")
 
 @app.route("/system")
