@@ -160,10 +160,12 @@ def do_execute():
     stdout = stderr = None
 
     try:
-        p = subprocess.Popen(request.form["command"], shell=True, cwd=cwd,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE)
-        if not async:
+        if async:
+            subprocess.Popen(request.form["command"], shell=True, cwd=cwd)
+        else:
+            p = subprocess.Popen(request.form["command"], shell=True, cwd=cwd,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
             stdout, stderr = p.communicate()
     except:
         return json_exception("Error executing command")
