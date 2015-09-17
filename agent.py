@@ -178,8 +178,12 @@ def do_execute():
 
 @app.route("/kill")
 def do_kill():
-    os.unlink(__file__)
-    exit(0)
+    shutdown = request.environ.get("werkzeug.server.shutdown")
+    if shutdown is None:
+        return json_error(500, "Not running with the Werkzeug server")
+
+    shutdown()
+    return json_success("Quit the Cuckoo Agent")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
