@@ -156,17 +156,18 @@ def do_execute():
     if "command" not in request.form:
         return json_error(400, "No command has been provided")
 
-    # Execute the command asynchronously?
+    # Execute the command asynchronously? As a shell command?
     async = "async" in request.form
+    shell = "shell" in request.form
 
     cwd = request.form.get("cwd")
     stdout = stderr = None
 
     try:
         if async:
-            subprocess.Popen(request.form["command"], shell=True, cwd=cwd)
+            subprocess.Popen(request.form["command"], shell=shell, cwd=cwd)
         else:
-            p = subprocess.Popen(request.form["command"], shell=True, cwd=cwd,
+            p = subprocess.Popen(request.form["command"], shell=shell, cwd=cwd,
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE)
             stdout, stderr = p.communicate()
