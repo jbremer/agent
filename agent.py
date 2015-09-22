@@ -14,7 +14,7 @@ import traceback
 import zipfile
 
 try:
-    from flask import Flask, request, jsonify
+    from flask import Flask, request, jsonify, send_file
 except ImportError:
     sys.exit("ERROR: Flask library is missing (`pip install flask`)")
 
@@ -117,6 +117,13 @@ def do_store():
         return json_exception("Error storing file")
 
     return json_success("Successfully stored file")
+
+@app.route("/retrieve", methods=["POST"])
+def do_retrieve():
+    if "filepath" not in request.form:
+        return json_error(400, "No filepath has been provided")
+
+    return send_file(request.form["filepath"])
 
 @app.route("/extract", methods=["POST"])
 def do_extract():
