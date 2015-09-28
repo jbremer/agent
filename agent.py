@@ -7,6 +7,7 @@ import argparse
 import os
 import platform
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -148,9 +149,15 @@ def do_remove():
 
     try:
         if os.path.isdir(request.form["path"]):
+            # Mark all files as readable so they can be deleted.
+            for dirpath, _, filenames in os.walk(request.form["path"]):
+                for filename in filenames:
+                    os.chmod(os.path.join(dirpath, filename), stat.S_IWRITE)
+
             shutil.rmtree(request.form["path"])
             message = "Successfully deleted directory"
         elif os.path.isfile(request.form["path"]):
+            os.chmod(request.form["path"], stat.S_IWRITE)
             os.remove(request.form["path"])
             message = "Successfully deleted file"
     except:
