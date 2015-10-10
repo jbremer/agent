@@ -12,13 +12,14 @@ import re
 import shutil
 import stat
 import subprocess
-import sys
 import tempfile
 import traceback
 import zipfile
 
 import SimpleHTTPServer
 import SocketServer
+
+AGENT_VERSION = "0.1"
 
 class MiniHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     server_version = "Cuckoo Agent"
@@ -173,7 +174,7 @@ def json_success(message, **kwargs):
 
 @app.route("/")
 def get_index():
-    return json_success("Cuckoo Agent!")
+    return json_success("Cuckoo Agent!", version=AGENT_VERSION)
 
 @app.route("/status")
 def get_status():
