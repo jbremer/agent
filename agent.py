@@ -41,12 +41,19 @@ class MiniHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         request.form = {}
         request.files = {}
 
-        for key in form.keys():
-            value = form[key]
-            if value.filename:
-                request.files[key] = value.file
-            else:
-                request.form[key] = value.value
+        # Another pretty fancy workaround. Since we provide backwards
+        # compatibility with the Old Agent we will get an xmlrpc request
+        # from the analyzer when the analysis has finished. Now xmlrpc being
+        # xmlrpc we're getting text/xml as content-type which cgi does not
+        # handle. This check detects when there is no available data rather
+        # than getting a hard exception trying to do so.
+        if form.list:
+            for key in form.keys():
+                value = form[key]
+                if value.filename:
+                    request.files[key] = value.file
+                else:
+                    request.form[key] = value.value
 
         self.httpd.handle(self)
 
