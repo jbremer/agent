@@ -20,18 +20,21 @@ import zipfile
 import SimpleHTTPServer
 import SocketServer
 
-AGENT_VERSION = "0.3"
+AGENT_VERSION = "0.4"
 AGENT_FEATURES = [
-    "execpy",
+    "execpy", "pinning",
 ]
 
 class MiniHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     server_version = "Cuckoo Agent"
 
     def do_GET(self):
+        request.client_ip, request.client_port = self.client_address
         request.form = {}
         request.files = {}
-        self.httpd.handle(self)
+
+        if "client_ip" not in state or request.client_ip == state["client_ip"]:
+            self.httpd.handle(self)
 
     def do_POST(self):
         environ = {
@@ -60,7 +63,8 @@ class MiniHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
                 else:
                     request.form[key] = value.value
 
-        self.httpd.handle(self)
+        if "client_ip" not in state or request.client_ip == state["client_ip"]:
+            self.httpd.handle(self)
 
 class MiniHTTPServer(object):
     def __init__(self):
@@ -155,6 +159,8 @@ class send_file(object):
 class request(object):
     form = {}
     files = {}
+    client_ip = None
+    client_port = None
     environ = {
         "werkzeug.server.shutdown": lambda: app.shutdown(),
     }
@@ -364,6 +370,15 @@ def do_execpy():
 
     return json_success("Successfully executed command",
                         stdout=stdout, stderr=stderr)
+
+@app.route("/pinning")
+def do_pinning():
+    if "client_ip" in state:
+        return json_error(500, "Agent has already been pinned to an IP!")
+
+    state["client_ip"] = request.client_ip
+    return json_success("Successfully pinned Agent",
+                        client_ip=request.client_ip)
 
 @app.route("/kill")
 def do_kill():
