@@ -5,6 +5,7 @@
 
 import argparse
 import cgi
+import io
 import json
 import os
 import platform
@@ -20,10 +21,13 @@ import zipfile
 import SimpleHTTPServer
 import SocketServer
 
-AGENT_VERSION = "0.4"
+AGENT_VERSION = "0.5"
 AGENT_FEATURES = [
-    "execpy", "pinning",
+    "execpy", "pinning", "logs",
 ]
+
+sys.stdout = io.BytesIO()
+sys.stderr = io.BytesIO()
 
 class MiniHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     server_version = "Cuckoo Agent"
@@ -202,6 +206,14 @@ def put_status():
     state["status"] = request.form["status"]
     state["description"] = request.form.get("description")
     return json_success("Analysis status updated")
+
+@app.route("/logs")
+def get_logs():
+    return json_success(
+        "Agent logs",
+        stdout=sys.stdout.getvalue(),
+        stderr=sys.stderr.getvalue()
+    )
 
 @app.route("/system")
 def get_system():
