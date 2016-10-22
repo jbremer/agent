@@ -343,9 +343,10 @@ def do_execute():
         if async:
             subprocess.Popen(request.form["command"], shell=shell, cwd=cwd)
         else:
-            p = subprocess.Popen(request.form["command"], shell=shell, cwd=cwd,
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
+            p = subprocess.Popen(
+                request.form["command"], shell=shell, cwd=cwd,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
             stdout, stderr = p.communicate()
     except:
         return json_exception("Error executing command")
