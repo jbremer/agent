@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2010-2015 Cuckoo Foundation.
+# Copyright (C) 2015-2016 Cuckoo Foundation.
 # This file is part of Cuckoo Sandbox - http://www.cuckoosandbox.org
 # See the file 'docs/LICENSE' for copying permission.
 
@@ -43,7 +43,7 @@ class MiniHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     def do_POST(self):
         environ = {
             "REQUEST_METHOD": "POST",
-            "CONTENT_TYPE": self.headers["Content-Type"],
+            "CONTENT_TYPE": self.headers.get("Content-Type"),
         }
 
         form = cgi.FieldStorage(fp=self.rfile,
@@ -201,7 +201,7 @@ def get_status():
 @app.route("/status", methods=["POST"])
 def put_status():
     if "status" not in request.form:
-        return json_error("No status has been provided")
+        return json_error(400, "No status has been provided")
 
     state["status"] = request.form["status"]
     state["description"] = request.form.get("description")

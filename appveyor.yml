@@ -1,0 +1,9 @@
+matrix:
+    - PYTHON: "C:\\Python26"
+    - PYTHON: "C:\\Python27"
+
+install:
+    - "%PYTHON%/Scrips/pip.exe install pytest requests"
+
+test_script:
+    - py.test
