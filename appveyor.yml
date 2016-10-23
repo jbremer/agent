@@ -9,4 +9,4 @@ install:
 build: false
 
 test_script:
-  - "%PYTHON%/Python.exe -m py.test"
+  - "%PYTHON%/Scripts/pytest.exe"
