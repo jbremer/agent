@@ -67,23 +67,23 @@ class TestAgent(object):
 
     def test_mkdir(self):
         env = self.get("/environ").json()["environ"]
+
+        # Linux and Windows support.
+        dirpath = env.get("PWD", env.get("TEMP"))
+
         assert self.post("/mkdir", data={
-            "dirpath": os.path.join(env["PWD"], "mkdir.test"),
+            "dirpath": os.path.join(dirpath, "mkdir.test"),
         }).status_code == 200
 
         r = self.post("/remove", data={
-            "path": os.path.join(env["PWD"], "mkdir.test"),
+            "path": os.path.join(dirpath, "mkdir.test"),
         })
         assert r.status_code == 200
         assert r.json()["message"] == "Successfully deleted directory"
 
         assert self.post("/remove", data={
-            "path": os.path.join(env["PWD"], "mkdir.test"),
+            "path": os.path.join(dirpath, "mkdir.test"),
         }).status_code == 404
-
-        assert self.post("/mkdir", data={
-            "dirpath": "/FOOBAR"
-        }).status_code == 500
 
     def test_execute(self):
         assert self.post("/execute").status_code == 400
