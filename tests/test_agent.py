@@ -1,9 +1,9 @@
-# Copyright (C) 2016 Cuckoo Foundation.
+# Copyright (C) 2016-2017 Cuckoo Foundation.
 # This file is part of Cuckoo Sandbox - http://www.cuckoosandbox.org
 # See the file 'docs/LICENSE' for copying permission.
+
 import os
 import platform
-import pytest
 import requests
 import sys
 import thread
@@ -31,6 +31,12 @@ class TestAgent(object):
         return requests.post(
             "http://localhost:%s%s" % (self.port, uri), *args, **kwargs
         )
+
+    @property
+    def tempdir(self):
+        """Returns a temporary'ish directory path."""
+        env = self.get("/environ").json()["environ"]
+        return env.get("PWD", env.get("TEMP"))
 
     def test_index(self):
         assert self.get("/").json()["message"] == "Cuckoo Agent!"
@@ -66,23 +72,18 @@ class TestAgent(object):
         assert self.get("/environ").json()
 
     def test_mkdir(self):
-        env = self.get("/environ").json()["environ"]
-
-        # Linux and Windows support.
-        dirpath = env.get("PWD", env.get("TEMP"))
-
         assert self.post("/mkdir", data={
-            "dirpath": os.path.join(dirpath, "mkdir.test"),
+            "dirpath": os.path.join(self.tempdir, "mkdir.test"),
         }).status_code == 200
 
         r = self.post("/remove", data={
-            "path": os.path.join(dirpath, "mkdir.test"),
+            "path": os.path.join(self.tempdir, "mkdir.test"),
         })
         assert r.status_code == 200
         assert r.json()["message"] == "Successfully deleted directory"
 
         assert self.post("/remove", data={
-            "path": os.path.join(dirpath, "mkdir.test"),
+            "path": os.path.join(self.tempdir, "mkdir.test"),
         }).status_code == 404
 
     def test_execute(self):
@@ -90,3 +91,17 @@ class TestAgent(object):
 
     def test_zipfile(self):
         assert self.post("/extract").status_code == 400
+
+    def test_store(self):
+        filepath = os.path.join(self.tempdir, "store.test")
+        if os.path.exists(filepath):
+            os.unlink(filepath)
+
+        data = {
+            "filepath": filepath,
+        }
+        files = {
+            "file": ("a.txt", "A"*1024*1024),
+        }
+        assert self.post("/store", data=data, files=files).status_code == 200
+        assert open(filepath, "rb").read() == "A"*1024*1024

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2015-2016 Cuckoo Foundation.
+# Copyright (C) 2015-2017 Cuckoo Foundation.
 # This file is part of Cuckoo Sandbox - http://www.cuckoosandbox.org
 # See the file 'docs/LICENSE' for copying permission.
 
@@ -21,9 +21,9 @@ import zipfile
 import SimpleHTTPServer
 import SocketServer
 
-AGENT_VERSION = "0.5"
+AGENT_VERSION = "0.6"
 AGENT_FEATURES = [
-    "execpy", "pinning", "logs",
+    "execpy", "pinning", "logs", "largefile",
 ]
 
 sys.stdout = io.BytesIO()
@@ -273,7 +273,7 @@ def do_store():
 
     try:
         with open(request.form["filepath"], "wb") as f:
-            f.write(request.files["file"].read())
+            shutil.copyfileobj(request.files["file"], f, 10*1024*1024)
     except:
         return json_exception("Error storing file")
 
