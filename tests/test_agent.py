@@ -105,3 +105,33 @@ class TestAgent(object):
         }
         assert self.post("/store", data=data, files=files).status_code == 200
         assert open(filepath, "rb").read() == "A"*1024*1024
+
+    def test_store_unicode(self):
+        filepath = os.path.join(self.tempdir, u"unic0de\u202e.txt")
+
+        assert self.post("/store", data={
+            "filepath": filepath,
+        }, files={
+            "file": ("a.txt", "A"*1024*1024),
+        }).status_code == 200
+        assert os.path.exists(filepath)
+
+        r = self.post("/retrieve", data={
+            "filepath": filepath,
+        })
+        assert r.status_code == 200
+        assert r.content == "A"*1024*1024
+        assert os.path.exists(filepath)
+
+        assert self.post("/remove", data={
+            "path": filepath,
+        }).status_code == 200
+        assert not os.path.exists(filepath)
+
+        assert self.post("/remove", data={
+            "path": filepath,
+        }).status_code == 404
+
+        assert self.post("/retrieve", data={
+            "filepath": filepath,
+        }).status_code == 404
