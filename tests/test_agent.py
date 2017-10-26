@@ -94,7 +94,7 @@ class TestAgent(object):
         assert r_fail.json()["message"] == "Error creating temporary file"
 
         r_ok = self.post("/mktemp", data={
-            "dirpath": "/tmp",
+            "dirpath": "",  # this will work for windows test as well as linux
         })
         assert r_ok.status_code == 200
         assert r_ok.json()["message"] == "Successfully created temporary file"
@@ -107,7 +107,7 @@ class TestAgent(object):
         assert r_fail.json()["message"] == "Error creating temporary directory"
 
         r_ok = self.post("/mkdtemp", data={
-            "dirpath": "/tmp",
+            "dirpath": "",  # this will work for windows test as well as linux
         })
         assert r_ok.status_code == 200
         assert r_ok.json()["message"] == "Successfully created temporary directory"
