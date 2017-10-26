@@ -86,6 +86,32 @@ class TestAgent(object):
             "path": os.path.join(self.tempdir, "mkdir.test"),
         }).status_code == 404
 
+    def test_mktemp(self):
+        r_fail = self.post("/mktemp", data={
+            "dirpath": "/",
+        })
+        assert r_fail.status_code == 500
+        assert r_fail.json()["message"] == "Error creating temporary file"
+
+        r_ok = self.post("/mktemp", data={
+            "dirpath": "/tmp",
+        })
+        assert r_ok.status_code == 200
+        assert r_ok.json()["message"] == "Successfully created temporary file"
+
+    def test_mkdtemp(self):
+        r_fail = self.post("/mkdtemp", data={
+            "dirpath": "/",
+        })
+        assert r_fail.status_code == 500
+        assert r_fail.json()["message"] == "Error creating temporary directory"
+
+        r_ok = self.post("/mkdtemp", data={
+            "dirpath": "/tmp",
+        })
+        assert r_ok.status_code == 200
+        assert r_ok.json()["message"] == "Successfully created temporary directory"
+
     def test_execute(self):
         assert self.post("/execute").status_code == 400
 
