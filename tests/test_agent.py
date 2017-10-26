@@ -88,7 +88,7 @@ class TestAgent(object):
 
     def test_mktemp(self):
         r_fail = self.post("/mktemp", data={
-            "dirpath": "/",
+            "dirpath": "/proc/non-existent",
         })
         assert r_fail.status_code == 500
         assert r_fail.json()["message"] == "Error creating temporary file"
@@ -101,7 +101,7 @@ class TestAgent(object):
 
     def test_mkdtemp(self):
         r_fail = self.post("/mkdtemp", data={
-            "dirpath": "/",
+            "dirpath": "/proc/non-existent",
         })
         assert r_fail.status_code == 500
         assert r_fail.json()["message"] == "Error creating temporary directory"
