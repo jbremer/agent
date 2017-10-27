@@ -21,7 +21,7 @@ import zipfile
 import SimpleHTTPServer
 import SocketServer
 
-AGENT_VERSION = "0.7"
+AGENT_VERSION = "0.8"
 AGENT_FEATURES = [
     "execpy", "pinning", "logs", "largefile", "unicodepath",
 ]
